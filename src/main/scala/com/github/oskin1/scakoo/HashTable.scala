@@ -17,13 +17,13 @@ final class HashTable private (memBlock: ByteVector, entriesPerBucket: Int) {
     checkBucket()
   }
 
-  def isEmptyBucket(idx: Long): Boolean = emptyEntry(idx) > -1
+  def isVacantBucket(idx: Long): Boolean = emptyEntry(idx) != -1
 
   /** Insert value to the `idx`th bucket.
     */
   def insert(idx: Long, value: Byte): HashTable = {
     val emptyEntryIdx = emptyEntry(idx)
-    if (emptyEntryIdx > -1) {
+    if (emptyEntryIdx != -1) {
       new HashTable(memBlock.insert(idx * entriesPerBucket + emptyEntryIdx, value), entriesPerBucket)
     } else {
       this
@@ -34,12 +34,14 @@ final class HashTable private (memBlock: ByteVector, entriesPerBucket: Int) {
     */
   def remove(idx: Long, value: Byte): HashTable = {
     val entryIdx = entryIndex(idx, value)
-    if (entryIdx > -1) {
+    if (entryIdx != -1) {
       new HashTable(memBlock.insert(idx * entriesPerBucket + entryIdx, value), entriesPerBucket)
     } else {
       this
     }
   }
+
+  override def toString: String = memBlock.toString()
 
   /** Find index of the entry in the `bucketIdx`th bucket were specific `value` is located.
     */
