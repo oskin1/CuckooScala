@@ -5,4 +5,10 @@ package com.github.oskin1.scakoo
   * both are very fast and space efficient. Both the bloom filter and cuckoo filter also report
   * false positives on set membership.
   */
-final class CuckooFilter[T] private (table: FilterTable[T])(implicit funnel: Funnel[T]) {}
+final class CuckooFilter[T] private (table: HashTable)(implicit funnel: Funnel[T]) {}
+
+object CuckooFilter {
+
+  val FingerprintSize: Int = 8
+
+}
