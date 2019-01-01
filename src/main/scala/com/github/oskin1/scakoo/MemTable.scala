@@ -3,7 +3,7 @@ package com.github.oskin1.scakoo
 import com.google.common.math.LongMath
 import scodec.bits.ByteVector
 
-final class HashTable private (memBlock: ByteVector, entriesPerBucket: Int) {
+private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
   /** Find vacant entry in the bucket.
     * @return - vacant entry in the `idx`th bucket
@@ -19,33 +19,15 @@ final class HashTable private (memBlock: ByteVector, entriesPerBucket: Int) {
 
   def isVacantBucket(idx: Long): Boolean = emptyEntry(idx) != -1
 
-  /** Insert value to the `idx`th bucket.
+  /** Insert value to the `entryIdx`th entry in `bucketIdx`th bucket.
     */
-  def insert(idx: Long, value: Byte): HashTable = {
-    val emptyEntryIdx = emptyEntry(idx)
-    if (emptyEntryIdx != -1) {
-      new HashTable(memBlock.insert(idx * entriesPerBucket + emptyEntryIdx, value), entriesPerBucket)
-    } else {
-      this
-    }
+  def updated(bucketIdx: Long, entryIdx: Int, value: Byte): MemTable = {
+    updated0(memBlock.insert(bucketIdx * entriesPerBucket + entryIdx, value))
   }
-
-  /** Remove value from the `idx`th bucket in case it is in the bucket.
-    */
-  def remove(idx: Long, value: Byte): HashTable = {
-    val entryIdx = entryIndex(idx, value)
-    if (entryIdx != -1) {
-      new HashTable(memBlock.insert(idx * entriesPerBucket + entryIdx, value), entriesPerBucket)
-    } else {
-      this
-    }
-  }
-
-  override def toString: String = memBlock.toString()
 
   /** Find index of the entry in the `bucketIdx`th bucket were specific `value` is located.
     */
-  private def entryIndex(bucketIdx: Long, value: Byte): Int = {
+  def entryIndex(bucketIdx: Long, value: Byte): Int = {
     def checkBucket(entriesChecked: Int = 0): Int = {
       if (memBlock.get(bucketIdx * entriesPerBucket + entriesChecked) == value) entriesChecked
       else if (entriesChecked + 1 < entriesPerBucket) checkBucket(entriesChecked + 1)
@@ -54,13 +36,21 @@ final class HashTable private (memBlock: ByteVector, entriesPerBucket: Int) {
     checkBucket()
   }
 
+  def numBuckets: Long = memBlock.size / entriesPerBucket
+
+  override def toString: String = memBlock.toString()
+
+  private def updated0(mb: ByteVector): MemTable = new MemTable(mb, entriesPerBucket)
+
 }
 
-object HashTable {
+private object MemTable {
 
-  def apply(entriesPerBucket: Int, bucketsQty: Int): HashTable = {
+  val initialSize: Long = 16L
+
+  def apply(entriesPerBucket: Int, bucketsQty: Long = initialSize): MemTable = {
     val blockSize = LongMath.checkedMultiply(bucketsQty, entriesPerBucket)
-    new HashTable(ByteVector.low(blockSize), entriesPerBucket)
+    new MemTable(ByteVector.low(blockSize), entriesPerBucket)
   }
   
 }
