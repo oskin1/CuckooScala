@@ -11,14 +11,16 @@ trait TaggingStrategy {
   def fingerprintOf(value: Sink): Byte = (hash(value) % 255).toByte
 
   def tag(value: Sink, indexRange: Long): (Long, Byte) = {
-    val idx = math.abs(hash(value) % indexRange)
+    val hashVal = hash(value)
+    val idx = (if (hashVal < 0) ~hashVal else hashVal) % indexRange
     val fp = fingerprintOf(value)
     (idx, fp)
   }
 
   def altIndex(idx: Long, fp: Byte, indexRange: Long): Long = {
     val fpHash = hash(Sink.fromByte(fp))
-    math.abs((idx ^ fpHash) % indexRange)
+    val hashVal = idx ^ fpHash
+    (if (hashVal < 0) ~hashVal else hashVal) % indexRange
   }
 
 }
