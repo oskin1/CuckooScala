@@ -6,7 +6,7 @@ import scodec.bits.ByteVector
 private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
   /** Find vacant entry in the bucket.
-    * @return - vacant entry in the `idx`th bucket
+    * @return - vacant entry index in the `idx`th bucket
     */
   def emptyEntry(idx: Long): Int = {
     def checkBucket(entriesChecked: Int = 0): Int = {
@@ -22,7 +22,7 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
   /** Insert value to the `entryIdx`th entry in `bucketIdx`th bucket.
     */
   def updated(bucketIdx: Long, entryIdx: Int, value: Byte): MemTable = {
-    updated0(memBlock.insert(bucketIdx * entriesPerBucket + entryIdx, value))
+    updated0(memBlock.update(bucketIdx * entriesPerBucket + entryIdx, value))
   }
 
   /** Find index of the entry in the `bucketIdx`th bucket were specific `value` is located.
@@ -36,6 +36,14 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
     checkBucket()
   }
 
+  def containsEntry(bucketIdx: Long, value: Byte): Boolean = entryIndex(bucketIdx, value) != -1
+
+  /** Read entry from the `entryIdx`th entry in `bucketIdx`th bucket.
+    */
+  def readEntry(bucketIdx: Long, entryIdx: Int): Byte = {
+    memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
+  }
+
   def numBuckets: Long = memBlock.size / entriesPerBucket
 
   override def toString: String = memBlock.toString()
@@ -46,9 +54,7 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
 private object MemTable {
 
-  val initialSize: Long = 16L
-
-  def apply(entriesPerBucket: Int, bucketsQty: Long = initialSize): MemTable = {
+  def apply(entriesPerBucket: Int, bucketsQty: Long): MemTable = {
     val blockSize = LongMath.checkedMultiply(bucketsQty, entriesPerBucket)
     new MemTable(ByteVector.low(blockSize), entriesPerBucket)
   }

@@ -4,7 +4,7 @@ import org.scalatest.{Matchers, PropSpec}
 
 class MemTableSpec extends PropSpec with Matchers {
 
-  val tableSize = 10
+  val tableSize = 100
 
   property("find empty entry on (all entries are empty in the bucket)") {
     val table = MemTable(2, tableSize)

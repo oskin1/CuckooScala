@@ -10,15 +10,15 @@ trait TaggingStrategy {
 
   def fingerprintOf(value: Sink): Byte = (hash(value) % 255).toByte
 
-  def tag(value: Sink, indexRange: Long): CuckooTag = {
-    val idx = hash(value) % indexRange
+  def tag(value: Sink, indexRange: Long): (Long, Byte) = {
+    val idx = math.abs(hash(value) % indexRange)
     val fp = fingerprintOf(value)
-    CuckooTag(idx, fp)
+    (idx, fp)
   }
 
-  def altIndex(tag: CuckooTag, indexRange: Long): Long = {
-    val fpHash = hash(Sink.fromByte(tag.fingerprint))
-    (tag.idx ^ fpHash) % indexRange
+  def altIndex(idx: Long, fp: Byte, indexRange: Long): Long = {
+    val fpHash = hash(Sink.fromByte(fp))
+    math.abs((idx ^ fpHash) % indexRange)
   }
 
 }
