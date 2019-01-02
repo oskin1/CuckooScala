@@ -1,5 +1,7 @@
 package com.github.oskin1.scakoo
 
+import java.lang.Long.numberOfLeadingZeros
+
 import com.google.common.math.LongMath
 import scodec.bits.ByteVector
 
@@ -40,9 +42,7 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
   /** Read entry from the `entryIdx`th entry in `bucketIdx`th bucket.
     */
-  def readEntry(bucketIdx: Long, entryIdx: Int): Byte = {
-    memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
-  }
+  def readEntry(bucketIdx: Long, entryIdx: Int): Byte = memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
 
   def numBuckets: Long = memBlock.size / entriesPerBucket
 
@@ -54,7 +54,12 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
 private object MemTable {
 
-  def apply(entriesPerBucket: Int, bucketsQty: Long): MemTable = {
+  /** Returns a power of two >= `target`.
+    */
+  private def nextPositivePowerOfTwo(target: Long): Long = 1 << -numberOfLeadingZeros(target - 1)
+
+  def apply(entriesPerBucket: Int, desiredBucketsQty: Long): MemTable = {
+    val bucketsQty = nextPositivePowerOfTwo(desiredBucketsQty)
     val blockSize = LongMath.checkedMultiply(bucketsQty, entriesPerBucket)
     new MemTable(ByteVector.low(blockSize), entriesPerBucket)
   }

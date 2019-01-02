@@ -5,7 +5,7 @@ import scala.util.{Failure, Random, Success, Try}
 /** Immutable Cuckoo Filter implementation. The Cuckoo Filter is a probabilistic data structure
   * that supports fast set membership testing. It is very similar to a bloom filter in that they
   * both are very fast and space efficient. Both the bloom filter and cuckoo filter also report
-  * false positives on set membership.
+  * false positives on set membership. Cuckoo Filter supports items deletion.
   */
 final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy: TaggingStrategy) {
 
