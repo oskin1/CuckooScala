@@ -44,8 +44,6 @@ private class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
     */
   def readEntry(bucketIdx: Long, entryIdx: Int): Byte = memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
 
-  /** Absolute maximum number of entries the filter can theoretically contain.
-    */
   def capacity: Long = memBlock.size
 
   def numBuckets: Long = capacity / entriesPerBucket

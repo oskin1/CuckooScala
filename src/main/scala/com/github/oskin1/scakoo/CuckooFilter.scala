@@ -11,6 +11,8 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
 
   private val nullFp: Byte = 0
 
+  /** Insert the `value` fingerprint to the table unless the table is full.
+    */
   def insert(value: T): Try[CuckooFilter[T]] = {
     val (idx, fp) = strategy.tag(funnel(value), size)
     val emptyEntryIdx = table.emptyEntry(idx)
@@ -27,6 +29,10 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
       }
     }
   }
+
+  /** Perform an insert if fingerprint of `value` isn't already contained in the table.
+    */
+  def insertUnique(value: T): Try[CuckooFilter[T]] = if (!lookup(value)) insert(value) else Success(this)
 
   def delete(value: T): CuckooFilter[T] = {
     val (idx, fp) = strategy.tag(funnel(value), size)
@@ -48,6 +54,8 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
 
   def size: Long = table.numBuckets
 
+  /** Absolute maximum number of entries the filter can theoretically contain.
+    */
   def capacity: Long = table.capacity
 
   override def toString: String = table.toString
