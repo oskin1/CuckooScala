@@ -9,36 +9,46 @@ import scala.util.{Failure, Random, Success, Try}
   */
 final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy: TaggingStrategy) {
 
+  private val nullFp: Byte = 0
+
   def insert(value: T): Try[CuckooFilter[T]] = {
-    val (idx, fp) = strategy.tag(funnel(value), table.numBuckets)
+    val (idx, fp) = strategy.tag(funnel(value), size)
     val emptyEntryIdx = table.emptyEntry(idx)
     if (emptyEntryIdx != -1) {
       Success(updated(table.updated(idx, emptyEntryIdx, fp)))
     } else {
-      val altIdx = strategy.altIndex(idx, fp, table.numBuckets)
+      val altIdx = strategy.altIndex(idx, fp, size)
       val altEmptyEntryIdx = table.emptyEntry(altIdx)
-      if (altEmptyEntryIdx != -1) Success(updated(table.updated(altIdx, altEmptyEntryIdx, fp)))
-      else swap(if (Random.nextBoolean()) idx else altIdx, fp)
+      if (altEmptyEntryIdx != -1) {
+        Success(updated(table.updated(altIdx, altEmptyEntryIdx, fp)))
+      } else {
+        val idxToSwap = if (Random.nextBoolean()) idx else altIdx
+        swap(idxToSwap, fp)
+      }
     }
   }
 
   def delete(value: T): CuckooFilter[T] = {
-    val (idx, fp) = strategy.tag(funnel(value), table.numBuckets)
+    val (idx, fp) = strategy.tag(funnel(value), size)
     val entryIdx = table.entryIndex(idx, fp)
     if (entryIdx != -1) {
-      updated(table.updated(idx, entryIdx, 0: Byte))
+      updated(table.updated(idx, entryIdx, nullFp))
     } else {
-      val altIdx = strategy.altIndex(idx, fp, table.numBuckets)
+      val altIdx = strategy.altIndex(idx, fp, size)
       val altEntryIdx = table.entryIndex(idx, fp)
-      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, 0: Byte))
+      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, nullFp))
       else this
     }
   }
 
   def lookup(value: T): Boolean = {
-    val (idx, fp) = strategy.tag(funnel(value), table.numBuckets)
-    table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, table.numBuckets), fp)
+    val (idx, fp) = strategy.tag(funnel(value), size)
+    table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, size), fp)
   }
+
+  def size: Long = table.numBuckets
+
+  def capacity: Long = table.capacity
 
   override def toString: String = table.toString
 

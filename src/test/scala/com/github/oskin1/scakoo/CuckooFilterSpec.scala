@@ -19,12 +19,22 @@ class CuckooFilterSpec extends PropSpec with Matchers with GeneratorDrivenProper
     CuckooFilter(entriesPerBucket, bucketsQty)
   }
 
-  property("insert and lookup") {
+  property("lookup") {
     forAll(filterGen) { f =>
       var filter = f
       forAll(valueGen) { v =>
         filter = filter.insert(v).get
         filter.lookup(v) shouldBe true
+      }
+    }
+  }
+
+  property("delete") {
+    forAll(filterGen) { f =>
+      var filter = f
+      forAll(valueGen) { v =>
+        filter = filter.insert(v).get.delete(v)
+        filter.lookup(v) shouldBe false
       }
     }
   }

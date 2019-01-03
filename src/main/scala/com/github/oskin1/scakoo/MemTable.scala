@@ -5,7 +5,7 @@ import java.lang.Long.numberOfLeadingZeros
 import com.google.common.math.LongMath
 import scodec.bits.ByteVector
 
-private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
+private class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
 
   /** Find vacant entry in the bucket.
     * @return - vacant entry index in the `idx`th bucket
@@ -44,7 +44,11 @@ private final class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
     */
   def readEntry(bucketIdx: Long, entryIdx: Int): Byte = memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
 
-  def numBuckets: Long = memBlock.size / entriesPerBucket
+  /** Absolute maximum number of entries the filter can theoretically contain.
+    */
+  def capacity: Long = memBlock.size
+
+  def numBuckets: Long = capacity / entriesPerBucket
 
   override def toString: String = memBlock.toString()
 
@@ -56,7 +60,7 @@ private object MemTable {
 
   /** Returns a power of two >= `target`.
     */
-  private def nextPositivePowerOfTwo(target: Long): Long = 1 << -numberOfLeadingZeros(target - 1)
+  def nextPositivePowerOfTwo(target: Long): Long = 1 << -numberOfLeadingZeros(target - 1)
 
   def apply(entriesPerBucket: Int, desiredBucketsQty: Long): MemTable = {
     val bucketsQty = nextPositivePowerOfTwo(desiredBucketsQty)

@@ -23,7 +23,7 @@ class MemTableSpec extends PropSpec with Matchers {
   property("find empty entry on (none entries are empty in the bucket)") {
     val table = MemTable(2, tableSize)
     (0 until tableSize).foreach { i =>
-      table.updated(i, 0, 87).updated(i, 1, 87).emptyEntry(i) shouldBe -1
+      table.updated(i, 0, 87).updated(i, 1, 97).emptyEntry(i) shouldBe -1
     }
   }
 
@@ -44,7 +44,7 @@ class MemTableSpec extends PropSpec with Matchers {
   property("check for empty entry (none entries are empty in the bucket)") {
     val table = MemTable(2, tableSize)
     (0 until tableSize).foreach { i =>
-      table.updated(i, 0, 87).updated(i, 1, 87).isVacantBucket(i) shouldBe false
+      table.updated(i, 0, 87).updated(i, 1, 97).isVacantBucket(i) shouldBe false
     }
   }
 
