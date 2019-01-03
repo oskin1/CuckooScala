@@ -5,7 +5,8 @@ import java.lang.Long.numberOfLeadingZeros
 import com.google.common.math.LongMath
 import scodec.bits.ByteVector
 
-private class MemTable(memBlock: ByteVector, val entriesPerBucket: Int) {
+private class MemTable(val memBlock: ByteVector, val entriesPerBucket: Int)
+  extends Serializable {
 
   /** Find vacant entry in the bucket.
     * @return - vacant entry index in the `idx`th bucket

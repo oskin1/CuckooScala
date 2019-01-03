@@ -1,5 +1,7 @@
 package com.github.oskin1.scakoo
 
+import scodec.bits.ByteVector
+
 import scala.util.{Failure, Random, Success, Try}
 
 /** Immutable Cuckoo Filter implementation. The Cuckoo Filter is a probabilistic data structure
@@ -7,7 +9,8 @@ import scala.util.{Failure, Random, Success, Try}
   * both are very fast and space efficient. Both the bloom filter and cuckoo filter also report
   * false positives on set membership. Cuckoo Filter supports items deletion.
   */
-final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy: TaggingStrategy) {
+final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy: TaggingStrategy)
+  extends Serializable {
 
   private val nullFp: Byte = 0
 
@@ -52,11 +55,15 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
     table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, size), fp)
   }
 
-  def size: Long = table.numBuckets
-
   /** Absolute maximum number of entries the filter can theoretically contain.
     */
   def capacity: Long = table.capacity
+
+  def size: Long = table.numBuckets
+
+  def entriesPerBucket: Int = table.entriesPerBucket
+
+  def memTable: ByteVector = table.memBlock
 
   override def toString: String = table.toString
 
@@ -90,6 +97,12 @@ object CuckooFilter {
   def apply[T](entriesPerBucket: Int, bucketsQty: Long)
               (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
     new CuckooFilter[T](MemTable(entriesPerBucket, bucketsQty))(funnel, strategy)
+  }
+
+  def recover[T](memBlock: ByteVector, entriesPerBucket: Int)
+                (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
+    val table = new MemTable(memBlock, entriesPerBucket)
+    new CuckooFilter[T](table)(funnel, strategy)
   }
 
 }
