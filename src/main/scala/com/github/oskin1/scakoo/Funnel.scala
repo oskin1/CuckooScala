@@ -14,20 +14,28 @@ trait Funnel[A] { self =>
 
 object Funnel {
 
-  implicit val byteArrayFunnel: Funnel[Array[Byte]] = { a: Array[Byte] =>
-    Sink.fromByteArray(a)
+  implicit val byteFunnel: Funnel[Byte] = { v: Byte =>
+    Sink.fromByte(v)
   }
 
-  implicit val stringFunnel: Funnel[String] = { s: String =>
-    Sink.fromString(s, StandardCharsets.UTF_8)
+  implicit val shortFunnel: Funnel[Short] = { v: Short =>
+    Sink.fromShort(v)
   }
 
-  implicit val intFunnel: Funnel[Int] = { i: Int =>
-    Sink.fromInt(i)
+  implicit val intFunnel: Funnel[Int] = { v: Int =>
+    Sink.fromInt(v)
   }
 
-  implicit val longFunnel: Funnel[Long] = { i: Long =>
-    Sink.fromLong(i)
+  implicit val longFunnel: Funnel[Long] = { v: Long =>
+    Sink.fromLong(v)
+  }
+
+  implicit val byteArrayFunnel: Funnel[Array[Byte]] = { v: Array[Byte] =>
+    Sink.fromByteArray(v)
+  }
+
+  implicit val stringFunnel: Funnel[String] = { v: String =>
+    Sink.fromString(v, StandardCharsets.UTF_8)
   }
 
 }

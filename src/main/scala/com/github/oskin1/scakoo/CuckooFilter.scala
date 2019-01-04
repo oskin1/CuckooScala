@@ -50,6 +50,8 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
     }
   }
 
+  /** Check if some `value` contained in the filter with some false positive probability.
+    */
   def lookup(value: T): Boolean = {
     val (idx, fp) = strategy.tag(funnel(value), size)
     table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, size), fp)
