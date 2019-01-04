@@ -1,6 +1,6 @@
 package com.github.oskin1.scakoo
 
-import scala.util.hashing.MurmurHash3
+import scala.util.hashing.{ByteswapHashing, MurmurHash3}
 
 /** A type that provides methods for tag calculation of some [[Sink]].
   */
@@ -28,5 +28,13 @@ trait TaggingStrategy {
 object MurmurHash3Strategy extends TaggingStrategy {
 
   override def hash(value: Sink): Int = MurmurHash3.arrayHash(value.data)
+
+}
+
+object ByteswapHashStrategy extends TaggingStrategy {
+
+  private val hashing = new ByteswapHashing[Array[Byte]]
+
+  override def hash(value: Sink): Int = hashing.hash(value.data)
 
 }

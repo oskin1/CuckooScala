@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 
 import com.google.common.primitives.{Bytes, Ints, Longs, Shorts}
 
-case class Sink(data: Array[Byte]) extends AnyVal {
+final case class Sink(data: Array[Byte]) {
 
   def putByte(v: Byte): Sink = {
     Sink(Bytes.concat(data, Array(v)))

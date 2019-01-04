@@ -22,4 +22,12 @@ object Funnel {
     Sink.fromString(s, StandardCharsets.UTF_8)
   }
 
+  implicit val intFunnel: Funnel[Int] = { i: Int =>
+    Sink.fromInt(i)
+  }
+
+  implicit val longFunnel: Funnel[Long] = { i: Long =>
+    Sink.fromLong(i)
+  }
+
 }
