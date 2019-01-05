@@ -13,7 +13,11 @@ trait TaggingStrategy {
   def tag(value: Sink, indexRange: Long): (Long, Byte) = {
     val hashVal = hash(value)
     val idx = (if (hashVal < 0) ~hashVal else hashVal) % indexRange
-    val fp = fingerprintOf(value)
+    def notEmptyFp(curTag: Byte, salt: Int = 0): Byte = {
+      if (curTag == 0) notEmptyFp(fingerprintOf(value.putInt(salt)), salt + 1)
+      else curTag
+    }
+    val fp = notEmptyFp(fingerprintOf(value))
     (idx, fp)
   }
 

@@ -28,4 +28,17 @@ class CuckooFilterSpec extends PropSpec
     }
   }
 
+  property("should reach load factor >= 95%") {
+    var filter = newFilter(4, 4096)
+    def loop(): Unit = {
+      val r = filter.insertUnique(valueGen.sample.get)
+      if (r.isSuccess) {
+        filter = r.get
+        loop()
+      }
+    }
+    loop()
+    filter.loadFactor >= 0.95 shouldBe true
+  }
+
 }

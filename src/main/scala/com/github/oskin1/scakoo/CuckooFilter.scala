@@ -83,8 +83,8 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
       val swappedFp = table.readEntry(idx0, entryIdx)
       val altIdx = strategy.altIndex(idx, swappedFp, table.numBuckets)
       table.emptyEntry(altIdx) match {
-        case x if x != -1 =>
-          Success(acc.updated(idx0, entryIdx, fp0).updated(altIdx, entryIdx, swappedFp))
+        case emptyEntryIdx if emptyEntryIdx != -1 =>
+          Success(acc.updated(idx0, entryIdx, fp0).updated(altIdx, emptyEntryIdx, swappedFp))
         case _ if counter < CuckooFilter.MaxSwapsQty =>
           loop(altIdx, swappedFp, acc.updated(idx0, entryIdx, fp0), counter + 1)
         case _ =>
