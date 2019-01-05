@@ -9,7 +9,8 @@ import scala.util.{Failure, Random, Success, Try}
   * both are very fast and space efficient. Both the bloom filter and cuckoo filter also report
   * false positives on set membership. Cuckoo Filter supports items deletion.
   */
-final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy: TaggingStrategy)
+final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
+                                   (funnel: Funnel[T], strategy: TaggingStrategy)
   extends Serializable {
 
   private val nullFp: Byte = 0
@@ -20,12 +21,12 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
     val (idx, fp) = strategy.tag(funnel(value), size)
     val emptyEntryIdx = table.emptyEntry(idx)
     if (emptyEntryIdx != -1) {
-      Success(updated(table.updated(idx, emptyEntryIdx, fp)))
+      Success(updated(table.updated(idx, emptyEntryIdx, fp), entriesCount + 1))
     } else {
       val altIdx = strategy.altIndex(idx, fp, size)
       val altEmptyEntryIdx = table.emptyEntry(altIdx)
       if (altEmptyEntryIdx != -1) {
-        Success(updated(table.updated(altIdx, altEmptyEntryIdx, fp)))
+        Success(updated(table.updated(altIdx, altEmptyEntryIdx, fp), entriesCount + 1))
       } else {
         val idxToSwap = if (Random.nextBoolean()) idx else altIdx
         swap(idxToSwap, fp)
@@ -41,11 +42,11 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
     val (idx, fp) = strategy.tag(funnel(value), size)
     val entryIdx = table.entryIndex(idx, fp)
     if (entryIdx != -1) {
-      updated(table.updated(idx, entryIdx, nullFp))
+      updated(table.updated(idx, entryIdx, nullFp), entriesCount - 1)
     } else {
       val altIdx = strategy.altIndex(idx, fp, size)
       val altEntryIdx = table.entryIndex(idx, fp)
-      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, nullFp))
+      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, nullFp), entriesCount - 1)
       else this
     }
   }
@@ -56,6 +57,11 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
     val (idx, fp) = strategy.tag(funnel(value), size)
     table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, size), fp)
   }
+
+  /** Current load factor of the filter. Reasonably sized filters could be
+    * expected to reach 95% (0.95) load factor before insertion failure.
+    */
+  def loadFactor: Double = entriesCount / (size * entriesPerBucket).toDouble
 
   /** Absolute maximum number of entries the filter can theoretically contain.
     */
@@ -85,10 +91,10 @@ final class CuckooFilter[T] private(table: MemTable)(funnel: Funnel[T], strategy
           Failure(new Exception("Filter is full"))
       }
     }
-    loop(idx, fp).map(updated)
+    loop(idx, fp).map(updated(_, entriesCount + 1))
   }
 
-  private def updated(mt: MemTable): CuckooFilter[T] = new CuckooFilter[T](mt)(funnel, strategy)
+  private def updated(mt: MemTable, count: Long): CuckooFilter[T] = new CuckooFilter[T](mt, count)(funnel, strategy)
 
 }
 
@@ -101,10 +107,10 @@ object CuckooFilter {
     new CuckooFilter[T](MemTable(entriesPerBucket, bucketsQty))(funnel, strategy)
   }
 
-  def recover[T](memBlock: ByteVector, entriesPerBucket: Int)
+  def recover[T](memBlock: ByteVector, entriesCount: Long, entriesPerBucket: Int)
                 (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
     val table = new MemTable(memBlock, entriesPerBucket)
-    new CuckooFilter[T](table)(funnel, strategy)
+    new CuckooFilter[T](table, entriesCount)(funnel, strategy)
   }
 
 }
