@@ -1,6 +1,6 @@
 # Cuckoo Filter
 
-This repository contains an immutable Cuckoo filter implementation.
+This repository contains high performance Cuckoo filter implementation for Scala.
 
 The Cuckoo Filter is a probabilistic data structure that supports fast set membership testing. It is very similar to a Bloom filter in that they both are very fast and space efficient. Both the Bloom filter and Cuckoo filter are constructed with some false positive probability.
 
@@ -19,6 +19,7 @@ import Funnel.intFunnel
 object ExampleUsage {
 
   def main(args: Array[String]): Unit = {
+  
     implicit val strategy: TaggingStrategy = MurmurHash3Strategy
 
     var filter = CuckooFilter[Int](4, 1024)
