@@ -62,6 +62,7 @@ private object MemTable {
   def nextPositivePowerOfTwo(target: Long): Long = 1 << -numberOfLeadingZeros(target - 1)
 
   def apply(entriesPerBucket: Int, desiredBucketsQty: Long): MemTable = {
+    // force number of buckets to be a power of 2 due to "modulo bias".
     val bucketsQty = nextPositivePowerOfTwo(desiredBucketsQty)
     val blockSize = LongMath.checkedMultiply(bucketsQty, entriesPerBucket)
     new MemTable(ByteVector.low(blockSize), entriesPerBucket)

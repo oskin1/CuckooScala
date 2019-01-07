@@ -13,7 +13,7 @@ trait CuckooFilterTestHelper {
 
   def newFilter(entriesPerBucket: Int, bucketsQty: Long): CuckooFilter[Array[Byte]] = {
     import Funnel.byteArrayFunnel
-    implicit val strategy: TaggingStrategy = MurmurHash3Strategy
+    import TaggingStrategy.MurmurHash3Strategy
     CuckooFilter(entriesPerBucket, bucketsQty)
   }
 

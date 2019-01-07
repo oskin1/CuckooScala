@@ -63,6 +63,8 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
     */
   def loadFactor: Double = entriesCount / (size * entriesPerBucket).toDouble
 
+  def isEmpty: Boolean = entriesCount == 0
+
   /** Absolute maximum number of entries the filter can theoretically contain.
     */
   def capacity: Long = table.capacity
@@ -73,7 +75,7 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
 
   def memTable: ByteVector = table.memBlock
 
-  override def toString: String = table.toString
+  override def toString: String = if (isEmpty) "CuckooFilter(empty)" else s"CuckooFilter(${loadFactor * 100}%, $table)"
 
   /** Swap fingerprint with some other one from random entry of `idx`th bucket.
     */

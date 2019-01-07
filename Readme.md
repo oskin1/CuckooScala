@@ -14,12 +14,12 @@ Details about the algorithm could be found in original article
 # Example usage
 
 ```scala
-import Funnel.intFunnel
+import com.github.oskin1.scakoo.Funnel.intFunnel
+import com.github.oskin1.scakoo.TaggingStrategy.MurmurHash3Strategy
 
-object ExampleUsage {
+object ExampleApp {
 
   def main(args: Array[String]): Unit = {
-    implicit val strategy: TaggingStrategy = MurmurHash3Strategy
 
     var filter = CuckooFilter[Int](4, 1024)
     val item = 87

@@ -6,7 +6,7 @@ import org.scalatest.{Matchers, PropSpec}
 
 class TaggingStrategySpec extends PropSpec with Matchers with GeneratorDrivenPropertyChecks {
 
-  private val strategy = MurmurHash3Strategy
+  private val strategy = TaggingStrategy.MurmurHash3Strategy
 
   val sinkGen: Gen[Sink] = Gen.nonEmptyListOf(Gen.negNum[Byte]).map(x => Sink(x.toArray))
 
