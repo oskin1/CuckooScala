@@ -25,7 +25,7 @@ private class MemTable(val memBlock: ByteVector, val entriesPerBucket: Int)
   /** Insert value to the `entryIdx`th entry in `bucketIdx`th bucket.
     */
   def updated(bucketIdx: Long, entryIdx: Int, value: Byte): MemTable = {
-    updated0(memBlock.update(bucketIdx * entriesPerBucket + entryIdx, value))
+    new MemTable(memBlock.update(bucketIdx * entriesPerBucket + entryIdx, value), entriesPerBucket)
   }
 
   /** Find index of the entry in the `bucketIdx`th bucket were specific `value` is located.
@@ -50,8 +50,6 @@ private class MemTable(val memBlock: ByteVector, val entriesPerBucket: Int)
   def numBuckets: Long = capacity / entriesPerBucket
 
   override def toString: String = memBlock.toString()
-
-  private def updated0(mb: ByteVector): MemTable = new MemTable(mb, entriesPerBucket)
 
 }
 
