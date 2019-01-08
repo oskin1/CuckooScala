@@ -82,7 +82,7 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
     def loop(idx0: Long, fp0: Byte, acc: MemTable = table, counter: Int = 0): Try[MemTable] = {
       val entryIdx = Random.nextInt(table.entriesPerBucket)
       val swappedFp = table.readEntry(idx0, entryIdx)
-      val altIdx = strategy.altIndex(idx, swappedFp, table.numBuckets)
+      val altIdx = strategy.altIndex(idx0, swappedFp, table.numBuckets)
       table.emptyEntry(altIdx) match {
         case emptyEntryIdx if emptyEntryIdx != -1 =>
           Success(acc.updated(idx0, entryIdx, fp0).updated(altIdx, emptyEntryIdx, swappedFp))
