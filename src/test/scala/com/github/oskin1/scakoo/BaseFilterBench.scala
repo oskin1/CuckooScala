@@ -5,11 +5,13 @@ import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
 import org.scalameter.{Gen, KeyValue}
 
+import scala.util.Random
+
 trait BaseFilterBench extends CuckooFilterTestHelper {
 
   protected val values: Gen[IndexedSeq[Array[Byte]]] = for {
     size <- Gen.enumeration("itemsQty")(1000, 4000, 16000)
-  } yield (0 until size).map(i => Ints.toByteArray(i * size))
+  } yield (0 until size).map(_ => Ints.toByteArray(Random.nextInt()))
 
   protected val mutableFilters: Gen[mutable.CuckooFilter[Array[Byte]]] = for {
     buckets <- Gen.enumeration("bucketsQty")(32000, 64000, 128000)

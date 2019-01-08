@@ -6,14 +6,14 @@ import org.scalameter.{Bench, Gen}
 
 object CuckooFilterBench extends Bench.ForkedTime with BaseFilterBench {
 
-  val filters: Gen[CuckooFilter[Array[Byte]]] = for {
+  val filterParams: Gen[(Int, Long)] = for {
     buckets <- Gen.enumeration("bucketsQty")(32000, 64000, 128000)
     entries <- Gen.enumeration("entriesQty")(4, 8, 16)
-  } yield newMutableFilter(entries, buckets)
+  } yield (entries, buckets)
 
-  val testCaseGen: Gen[(CuckooFilter[Array[Byte]], IndexedSeq[Array[Byte]])] = for {
+  val testCaseGen: Gen[((Int, Long), IndexedSeq[Array[Byte]])] = for {
     items <- values
-    fls <- filters
+    fls <- filterParams
   } yield (fls, items)
 
   def benchInsert(filter: CuckooFilter[Array[Byte]], items: Seq[Array[Byte]]): Unit = {
@@ -27,12 +27,16 @@ object CuckooFilterBench extends Bench.ForkedTime with BaseFilterBench {
   performance of "mutable.CuckooFilter" in {
     performance of "insert" in {
       using(testCaseGen) config(config: _*) in {
-        case (filter, items) => benchInsert(filter, items)
+        case (fp, items) =>
+          val filter = newMutableFilter(fp._1, fp._2)
+          benchInsert(filter, items)
       }
     }
     performance of "lookup" in {
       using(testCaseGen) config(config: _*) in {
-        case (filter, items) => benchLookup(filter, items)
+        case (fp, items) =>
+          val filter = newMutableFilter(fp._1, fp._2)
+          benchLookup(filter, items)
       }
     }
   }

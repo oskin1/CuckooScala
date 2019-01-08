@@ -14,7 +14,7 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
                                    (funnel: Funnel[T], strategy: TaggingStrategy)
   extends Serializable {
 
-  /** Insert the `value` fingerprint to the table unless the table is full.
+  /** Insert `value` fingerprint to the table unless the table is full.
     */
   def insert(value: T): Try[CuckooFilter[T]] = {
     val (idx, fp) = strategy.tag(funnel(value), size)

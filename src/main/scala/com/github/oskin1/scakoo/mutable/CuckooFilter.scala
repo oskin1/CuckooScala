@@ -15,7 +15,7 @@ final class CuckooFilter[T] private(private var _table: MemTable, private var _e
                                    (funnel: Funnel[T], strategy: TaggingStrategy)
   extends Serializable {
 
-  /** Insert the `value` fingerprint to the table unless the table is full.
+  /** Insert `value` fingerprint to the table unless the table is full.
     */
   def insert(value: T): Try[Unit] = {
     val (idx, fp) = strategy.tag(funnel(value), size)
@@ -93,7 +93,7 @@ final class CuckooFilter[T] private(private var _table: MemTable, private var _e
     def loop(idx0: Long, fp0: Byte, acc: MemTable = _table, counter: Int = 0): Try[MemTable] = {
       val entryIdx = Random.nextInt(_table.entriesPerBucket)
       val swappedFp = _table.readEntry(idx0, entryIdx)
-      val altIdx = strategy.altIndex(idx, swappedFp, _table.numBuckets)
+      val altIdx = strategy.altIndex(idx0, swappedFp, _table.numBuckets)
       _table.emptyEntry(altIdx) match {
         case emptyEntryIdx if emptyEntryIdx != -1 =>
           Success(acc.updated(idx0, entryIdx, fp0).updated(altIdx, emptyEntryIdx, swappedFp))
