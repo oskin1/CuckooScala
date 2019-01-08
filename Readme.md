@@ -13,6 +13,18 @@ Details about the algorithm could be found in original article
 
 # Example usage
 
+Add dependency to `build.sbt`:
+```scala
+resolvers ++= Seq(
+  "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+)
+
+libraryDependencies ++= Seq(
+  "com.github.oskin1" %% "scakoo" % "0.3.+"
+)
+```
+
+
 ```scala
 import com.github.oskin1.scakoo.mutable
 import com.github.oskin1.scakoo.Funnel.intFunnel
