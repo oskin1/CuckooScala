@@ -6,15 +6,26 @@ trait CuckooFilterTestHelper {
 
   val valueGen: Gen[Array[Byte]] = Gen.nonEmptyListOf(Gen.negNum[Byte]).map(_.toArray)
 
-  val filterGen: Gen[CuckooFilter[Array[Byte]]] = for {
+  val immutableFilterGen: Gen[immutable.CuckooFilter[Array[Byte]]] = for {
     entries <- Gen.chooseNum(1, 16)
     powerOfTwo <- Gen.chooseNum(8, 16)
-  } yield newFilter(entries, math.pow(2, powerOfTwo).toLong)
+  } yield newImmutableFilter(entries, math.pow(2, powerOfTwo).toLong)
 
-  def newFilter(entriesPerBucket: Int, bucketsQty: Long): CuckooFilter[Array[Byte]] = {
+  val mutableFilterGen: Gen[mutable.CuckooFilter[Array[Byte]]] = for {
+    entries <- Gen.chooseNum(1, 16)
+    powerOfTwo <- Gen.chooseNum(8, 16)
+  } yield newMutableFilter(entries, math.pow(2, powerOfTwo).toLong)
+
+  def newImmutableFilter(entriesPerBucket: Int, bucketsQty: Long): immutable.CuckooFilter[Array[Byte]] = {
     import Funnel.byteArrayFunnel
     import TaggingStrategy.MurmurHash3Strategy
-    CuckooFilter(entriesPerBucket, bucketsQty)
+    immutable.CuckooFilter(entriesPerBucket, bucketsQty)
+  }
+
+  def newMutableFilter(entriesPerBucket: Int, bucketsQty: Long): mutable.CuckooFilter[Array[Byte]] = {
+    import Funnel.byteArrayFunnel
+    import TaggingStrategy.MurmurHash3Strategy
+    mutable.CuckooFilter(entriesPerBucket, bucketsQty)
   }
 
 }

@@ -1,5 +1,6 @@
-package com.github.oskin1.scakoo
+package com.github.oskin1.scakoo.immutable
 
+import com.github.oskin1.scakoo.{Constants, Funnel, MemTable, TaggingStrategy}
 import scodec.bits.ByteVector
 
 import scala.util.{Failure, Random, Success, Try}
@@ -12,8 +13,6 @@ import scala.util.{Failure, Random, Success, Try}
 final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
                                    (funnel: Funnel[T], strategy: TaggingStrategy)
   extends Serializable {
-
-  private val nullFp: Byte = 0
 
   /** Insert the `value` fingerprint to the table unless the table is full.
     */
@@ -42,11 +41,11 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
     val (idx, fp) = strategy.tag(funnel(value), size)
     val entryIdx = table.entryIndex(idx, fp)
     if (entryIdx != -1) {
-      updated(table.updated(idx, entryIdx, nullFp), entriesCount - 1)
+      updated(table.updated(idx, entryIdx, Constants.NullFp), entriesCount - 1)
     } else {
       val altIdx = strategy.altIndex(idx, fp, size)
       val altEntryIdx = table.entryIndex(idx, fp)
-      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, nullFp), entriesCount - 1)
+      if (altEntryIdx != -1) updated(table.updated(altIdx, altEntryIdx, Constants.NullFp), entriesCount - 1)
       else this
     }
   }
@@ -87,7 +86,7 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
       table.emptyEntry(altIdx) match {
         case emptyEntryIdx if emptyEntryIdx != -1 =>
           Success(acc.updated(idx0, entryIdx, fp0).updated(altIdx, emptyEntryIdx, swappedFp))
-        case _ if counter < CuckooFilter.MaxSwapsQty =>
+        case _ if counter < Constants.MaxSwapsQty =>
           loop(altIdx, swappedFp, acc.updated(idx0, entryIdx, fp0), counter + 1)
         case _ =>
           Failure(new Exception("Filter is full"))
@@ -101,8 +100,6 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
 }
 
 object CuckooFilter {
-
-  val MaxSwapsQty: Int = 500
 
   def apply[T](entriesPerBucket: Int, bucketsQty: Long)
               (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {

@@ -1,5 +1,6 @@
-package com.github.oskin1.scakoo
+package com.github.oskin1.scakoo.immutable
 
+import com.github.oskin1.scakoo.CuckooFilterTestHelper
 import org.scalatest.prop.GeneratorDrivenPropertyChecks
 import org.scalatest.{Matchers, PropSpec}
 
@@ -9,7 +10,7 @@ class CuckooFilterSpec extends PropSpec
   with CuckooFilterTestHelper {
 
   property("lookup") {
-    forAll(filterGen) { f =>
+    forAll(immutableFilterGen) { f =>
       var filter = f
       forAll(valueGen) { v =>
         filter = filter.insert(v).get
@@ -19,7 +20,7 @@ class CuckooFilterSpec extends PropSpec
   }
 
   property("delete") {
-    forAll(filterGen) { f =>
+    forAll(immutableFilterGen) { f =>
       var filter = f
       forAll(valueGen) { v =>
         filter = filter.insert(v).get.delete(v)
@@ -29,7 +30,7 @@ class CuckooFilterSpec extends PropSpec
   }
 
   property("should reach load factor >= 95%") {
-    var filter = newFilter(4, 4096)
+    var filter = newImmutableFilter(4, 4096)
     def loop(): Unit = {
       val r = filter.insertUnique(valueGen.sample.get)
       if (r.isSuccess) {
