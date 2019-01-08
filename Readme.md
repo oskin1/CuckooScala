@@ -14,6 +14,7 @@ Details about the algorithm could be found in original article
 # Example usage
 
 ```scala
+import com.github.oskin1.scakoo.mutable
 import com.github.oskin1.scakoo.Funnel.intFunnel
 import com.github.oskin1.scakoo.TaggingStrategy.MurmurHash3Strategy
 
@@ -21,20 +22,14 @@ object ExampleApp {
 
   def main(args: Array[String]): Unit = {
 
-    var filter = CuckooFilter[Int](4, 1024)
+    val filter = mutable.CuckooFilter[Int](4, 1024)
     val item = 87
 
-    filter.insert(item) match {
-      case scala.util.Success(updated) =>
-        println(s"$item inserted successfully")
-        filter = updated
-      case scala.util.Failure(exception) =>
-        println(exception.getCause)
-    }
+    if (filter.insert(item).isSuccess) println(s"$item inserted successfully")
 
     println(s"filter contains $item = ${filter.lookup(item)}")
 
-    filter = filter.delete(item)
+    filter.delete(item)
 
     println(s"$item removed from filter")
 

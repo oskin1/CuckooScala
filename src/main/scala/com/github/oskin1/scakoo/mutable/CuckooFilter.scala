@@ -3,7 +3,6 @@ package com.github.oskin1.scakoo.mutable
 import com.github.oskin1.scakoo.{Constants, Funnel, MemTable, TaggingStrategy}
 import scodec.bits.ByteVector
 
-import scala.collection.mutable
 import scala.util.{Failure, Random, Success, Try}
 
 /** Mutable Cuckoo Filter implementation. The Cuckoo Filter is a probabilistic data structure
@@ -32,7 +31,6 @@ final class CuckooFilter[T] private(private var _table: MemTable, private var _e
         _entriesCount += 1
         Success(())
       } else {
-        mutable.HashMap
         val idxToSwap = if (Random.nextBoolean()) idx else altIdx
         swap(idxToSwap, fp)
       }
