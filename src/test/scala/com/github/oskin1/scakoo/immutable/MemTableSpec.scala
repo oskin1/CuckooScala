@@ -1,4 +1,4 @@
-package com.github.oskin1.scakoo
+package com.github.oskin1.scakoo.immutable
 
 import org.scalatest.{Matchers, PropSpec}
 

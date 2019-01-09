@@ -20,7 +20,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.github.oskin1" %% "scakoo" % "0.3.+"
+  "com.github.oskin1" %% "scakoo" % "0.4.+"
 )
 ```
 

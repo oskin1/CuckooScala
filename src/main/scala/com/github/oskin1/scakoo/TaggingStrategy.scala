@@ -10,7 +10,7 @@ trait TaggingStrategy {
 
   def fingerprintOf(value: Sink): Byte = (hash(value) % 255).toByte
 
-  def tag(value: Sink, indexRange: Long): (Long, Byte) = {
+  def tag(value: Sink, indexRange: Int): (Int, Byte) = {
     val hashVal = hash(value)
     val idx = (if (hashVal < 0) ~hashVal else hashVal) % indexRange
     def notEmptyFp(curTag: Byte, salt: Int = 0): Byte = {
@@ -21,7 +21,7 @@ trait TaggingStrategy {
     (idx, fp)
   }
 
-  def altIndex(idx: Long, fp: Byte, indexRange: Long): Long = {
+  def altIndex(idx: Int, fp: Byte, indexRange: Int): Int = {
     val fpHash = hash(Sink.fromByte(fp))
     val hashVal = idx ^ fpHash
     (if (hashVal < 0) ~hashVal else hashVal) % indexRange

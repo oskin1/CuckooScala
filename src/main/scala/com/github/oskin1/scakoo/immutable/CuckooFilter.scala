@@ -1,6 +1,6 @@
 package com.github.oskin1.scakoo.immutable
 
-import com.github.oskin1.scakoo.{Constants, Funnel, MemTable, TaggingStrategy}
+import com.github.oskin1.scakoo.{BaseCuckooFilter, Constants, Funnel, TaggingStrategy}
 import scodec.bits.ByteVector
 
 import scala.util.{Failure, Random, Success, Try}
@@ -10,9 +10,9 @@ import scala.util.{Failure, Random, Success, Try}
   * both are very fast and space efficient. Both the bloom filter and cuckoo filter also report
   * false positives on set membership. Cuckoo Filter supports items deletion.
   */
-final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
-                                   (funnel: Funnel[T], strategy: TaggingStrategy)
-  extends Serializable {
+final class CuckooFilter[T] private(private[scakoo] val table: MemTable, val entriesCount: Int = 0)
+                                   (val funnel: Funnel[T], val strategy: TaggingStrategy)
+  extends BaseCuckooFilter[T] {
 
   /** Insert `value` fingerprint to the table unless the table is full.
     */
@@ -50,13 +50,6 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
     }
   }
 
-  /** Check if some `value` contained in the filter with some false positive probability.
-    */
-  def lookup(value: T): Boolean = {
-    val (idx, fp) = strategy.tag(funnel(value), size)
-    table.containsEntry(idx, fp) || table.containsEntry(strategy.altIndex(idx, fp, size), fp)
-  }
-
   /** Current load factor of the filter. Reasonably sized filters could be
     * expected to reach 95% (0.95) load factor before insertion failure.
     */
@@ -64,22 +57,12 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
 
   def isEmpty: Boolean = entriesCount == 0
 
-  /** Absolute maximum number of entries the filter can theoretically contain.
-    */
-  def capacity: Long = table.capacity
-
-  def size: Long = table.numBuckets
-
-  def entriesPerBucket: Int = table.entriesPerBucket
-
-  def memTable: ByteVector = table.memBlock
-
-  override def toString: String = if (isEmpty) "CuckooFilter(empty)" else s"CuckooFilter(${loadFactor * 100}%, $table)"
+  def memTable: Array[Byte] = table.memBlock.toArray
 
   /** Swap fingerprint with some other one from random entry of `idx`th bucket.
     */
-  private def swap(idx: Long, fp: Byte): Try[CuckooFilter[T]] = {
-    def loop(idx0: Long, fp0: Byte, acc: MemTable = table, counter: Int = 0): Try[MemTable] = {
+  private def swap(idx: Int, fp: Byte): Try[CuckooFilter[T]] = {
+    def loop(idx0: Int, fp0: Byte, acc: MemTable = table, counter: Int = 0): Try[MemTable] = {
       val entryIdx = Random.nextInt(table.entriesPerBucket)
       val swappedFp = table.readEntry(idx0, entryIdx)
       val altIdx = strategy.altIndex(idx0, swappedFp, table.numBuckets)
@@ -95,20 +78,20 @@ final class CuckooFilter[T] private(table: MemTable, val entriesCount: Long = 0)
     loop(idx, fp).map(updated(_, entriesCount + 1))
   }
 
-  private def updated(mt: MemTable, count: Long): CuckooFilter[T] = new CuckooFilter[T](mt, count)(funnel, strategy)
+  private def updated(mt: MemTable, count: Int): CuckooFilter[T] = new CuckooFilter[T](mt, count)(funnel, strategy)
 
 }
 
 object CuckooFilter {
 
-  def apply[T](entriesPerBucket: Int, bucketsQty: Long)
+  def apply[T](entriesPerBucket: Int, bucketsQty: Int)
               (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
     new CuckooFilter[T](MemTable(entriesPerBucket, bucketsQty))(funnel, strategy)
   }
 
-  def recover[T](memBlock: ByteVector, entriesCount: Long, entriesPerBucket: Int)
+  def recover[T](memBlock: Array[Byte], entriesCount: Int, entriesPerBucket: Int)
                 (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
-    val table = new MemTable(memBlock, entriesPerBucket)
+    val table = new MemTable(ByteVector(memBlock), entriesPerBucket)
     new CuckooFilter[T](table, entriesCount)(funnel, strategy)
   }
 
