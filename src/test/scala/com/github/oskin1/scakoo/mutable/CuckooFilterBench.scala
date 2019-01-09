@@ -6,12 +6,12 @@ import org.scalameter.{Bench, Gen}
 
 object CuckooFilterBench extends Bench.ForkedTime with BaseFilterBench {
 
-  val filterParams: Gen[(Int, Long)] = for {
+  val filterParams: Gen[(Int, Int)] = for {
     buckets <- Gen.enumeration("bucketsQty")(32000, 64000, 128000)
     entries <- Gen.enumeration("entriesQty")(4, 8, 16)
   } yield (entries, buckets)
 
-  val testCaseGen: Gen[((Int, Long), IndexedSeq[Array[Byte]])] = for {
+  val testCaseGen: Gen[((Int, Int), IndexedSeq[Array[Byte]])] = for {
     items <- values
     fls <- filterParams
   } yield (fls, items)
