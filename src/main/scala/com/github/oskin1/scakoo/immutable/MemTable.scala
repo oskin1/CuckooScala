@@ -6,12 +6,12 @@ import scodec.bits.ByteVector
 
 /** Immutable memory table implementation backed by [[ByteVector]].
   */
-private[scakoo] class MemTable(val memBlock: ByteVector, val entriesPerBucket: Int)
+private[scakoo] class MemTable(val memBlock: Vector[Byte], val entriesPerBucket: Int)
   extends BaseMemTable {
 
   def emptyEntry(idx: Int): Int = {
     def checkBucket(entriesChecked: Int = 0): Int = {
-      if (memBlock.get(idx * entriesPerBucket + entriesChecked) == 0) entriesChecked
+      if (memBlock(idx * entriesPerBucket + entriesChecked) == 0) entriesChecked
       else if (entriesChecked + 1 < entriesPerBucket) checkBucket(entriesChecked + 1)
       else -1
     }
@@ -21,21 +21,21 @@ private[scakoo] class MemTable(val memBlock: ByteVector, val entriesPerBucket: I
   /** Insert value to the `entryIdx`th entry in `bucketIdx`th bucket.
     */
   def updated(bucketIdx: Int, entryIdx: Int, value: Byte): MemTable = {
-    new MemTable(memBlock.update(bucketIdx * entriesPerBucket + entryIdx, value), entriesPerBucket)
+    new MemTable(memBlock.updated(bucketIdx * entriesPerBucket + entryIdx, value), entriesPerBucket)
   }
 
   def entryIndex(bucketIdx: Int, value: Byte): Int = {
     def checkBucket(entriesChecked: Int = 0): Int = {
-      if (memBlock.get(bucketIdx * entriesPerBucket + entriesChecked) == value) entriesChecked
+      if (memBlock(bucketIdx * entriesPerBucket + entriesChecked) == value) entriesChecked
       else if (entriesChecked + 1 < entriesPerBucket) checkBucket(entriesChecked + 1)
       else -1
     }
     checkBucket()
   }
 
-  def readEntry(bucketIdx: Int, entryIdx: Int): Byte = memBlock.get(bucketIdx * entriesPerBucket + entryIdx)
+  def readEntry(bucketIdx: Int, entryIdx: Int): Byte = memBlock(bucketIdx * entriesPerBucket + entryIdx)
 
-  def capacity: Int = memBlock.size.toInt
+  def capacity: Int = memBlock.size
 
 }
 
@@ -45,7 +45,7 @@ private object MemTable {
     // force number of buckets to be a power of 2 due to "modulo bias".
     val bucketsQty = Utils.nextPositivePowerOfTwo(desiredBucketsQty)
     val blockSize = IntMath.checkedMultiply(bucketsQty, entriesPerBucket)
-    new MemTable(ByteVector.low(blockSize), entriesPerBucket)
+    new MemTable(Vector.fill(blockSize)(0: Byte), entriesPerBucket)
   }
 
 }

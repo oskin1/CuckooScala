@@ -91,7 +91,7 @@ object CuckooFilter {
 
   def recover[T](memBlock: Array[Byte], entriesCount: Int, entriesPerBucket: Int)
                 (implicit funnel: Funnel[T], strategy: TaggingStrategy): CuckooFilter[T] = {
-    val table = new MemTable(ByteVector(memBlock), entriesPerBucket)
+    val table = new MemTable(memBlock.toVector, entriesPerBucket)
     new CuckooFilter[T](table, entriesCount)(funnel, strategy)
   }
 

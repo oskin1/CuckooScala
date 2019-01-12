@@ -1,6 +1,6 @@
 name := "scakoo"
 
-version := "0.4.0"
+version := "0.4.1"
 
 scalaVersion := "2.12.8"
 
@@ -8,7 +8,6 @@ organization := "com.github.oskin1"
 
 libraryDependencies ++= Seq(
   "com.google.guava" % "guava" % "23.0",
-  "org.scodec" %% "scodec-bits" % "1.1.7",
   "org.scalatest" %% "scalatest" % "3.0.+" % "test",
   "org.scalacheck" %% "scalacheck" % "1.14.+" % "test",
   "com.storm-enroute" %% "scalameter" % "0.8.+" % "test"
