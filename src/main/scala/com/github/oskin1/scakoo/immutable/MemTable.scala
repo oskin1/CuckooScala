@@ -2,9 +2,8 @@ package com.github.oskin1.scakoo.immutable
 
 import com.github.oskin1.scakoo.{BaseMemTable, Utils}
 import com.google.common.math.IntMath
-import scodec.bits.ByteVector
 
-/** Immutable memory table implementation backed by [[ByteVector]].
+/** Immutable memory table implementation backed by [[Vector]].
   */
 private[scakoo] class MemTable(val memBlock: Vector[Byte], val entriesPerBucket: Int)
   extends BaseMemTable {

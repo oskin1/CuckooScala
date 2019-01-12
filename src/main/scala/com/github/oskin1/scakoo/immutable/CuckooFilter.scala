@@ -1,7 +1,6 @@
 package com.github.oskin1.scakoo.immutable
 
 import com.github.oskin1.scakoo.{BaseCuckooFilter, Constants, Funnel, TaggingStrategy}
-import scodec.bits.ByteVector
 
 import scala.util.{Failure, Random, Success, Try}
 
